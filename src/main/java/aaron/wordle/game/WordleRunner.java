@@ -42,6 +42,7 @@ public class WordleRunner {
         List<PositionResponse> positionResponses;
         do {
             String nextGuess = solver.nextGuess();
+            console.printf("I guess '" + nextGuess + "'. What is the response from Wordle?");
             positionResponses = getResponseFromLine(System.console().readLine());
             while (positionResponses == null) {
                 console.printf("Invalid input! Please enter a valid reply.\n");
