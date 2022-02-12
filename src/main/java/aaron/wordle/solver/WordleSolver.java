@@ -46,7 +46,12 @@ public class WordleSolver {
                 List<PositionResponse> potentialResponse = wordResponseIterator.next();
                 WordConstraints wordConstraintsAfterGuessAndResponse = wordConstraints.updateFromGuess(word, potentialResponse);
                 if (wordConstraintsAfterGuessAndResponse == null) continue;
-                int numRemainingGuesses = (int) remainingWords.stream().filter(wordConstraintsAfterGuessAndResponse::wordFitsConstraints).count();
+                int numRemainingGuesses = 0;
+                for (String remainingGuess : remainingWords) {
+                    if (wordConstraintsAfterGuessAndResponse.wordFitsConstraints(remainingGuess)) {
+                        numRemainingGuesses++;
+                    }
+                }
                 if (numRemainingGuesses > maxNumRemainingGuesses) {
                     maxNumRemainingGuesses = numRemainingGuesses;
                 }
