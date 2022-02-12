@@ -7,7 +7,7 @@ import java.util.*;
 public class WordConstraints {
 
     private final int wordLength;
-    private final Map<Character, Integer> characterToMinCountInWord;
+    private final int[] characterToMinCountInWord;
     private final Map<Character, Integer> characterToMaxCountInWord;
     private final boolean[][] positionToAllowedCharacters;
 
@@ -17,7 +17,7 @@ public class WordConstraints {
 
     private WordConstraints(WordConstraints wordConstraints) {
         wordLength = wordConstraints.wordLength;
-        characterToMinCountInWord = new HashMap<>(wordConstraints.characterToMinCountInWord);
+        characterToMinCountInWord = Arrays.copyOf(wordConstraints.characterToMinCountInWord, wordConstraints.characterToMinCountInWord.length);
         characterToMaxCountInWord = new HashMap<>(wordConstraints.characterToMaxCountInWord);
         positionToAllowedCharacters = new boolean[wordConstraints.wordLength][];
         for (int position = 0; position < positionToAllowedCharacters.length; position++) {
@@ -26,7 +26,7 @@ public class WordConstraints {
     }
 
     public WordConstraints(int wordLength) {
-        this.characterToMinCountInWord = new HashMap<>();
+        this.characterToMinCountInWord = new int[26];
         this.characterToMaxCountInWord = new HashMap<>();
         this.wordLength = wordLength;
         this.positionToAllowedCharacters = new boolean[wordLength][];
@@ -52,11 +52,11 @@ public class WordConstraints {
             int guessCharOffset = guessCharacter - 'a';
             PositionResponse responseAtPosition = response.get(guessPosition);
             if (responseAtPosition == PositionResponse.IN_WORD_NOT_POSITION) {
-                constraints.characterToMinCountInWord.put(guessCharacter, Math.max(constraints.characterToMinCountInWord.getOrDefault(guessCharacter, 0), 1));
+                constraints.characterToMinCountInWord[guessCharOffset] = Math.max(constraints.characterToMinCountInWord[guessCharOffset], 1);
                 constraints.positionToAllowedCharacters[guessPosition][guessCharOffset] = false;
                 charToNumResponsesIndicatingCharInWord.put(guessCharacter, charToNumResponsesIndicatingCharInWord.getOrDefault(guessCharacter, 0) + 1);
             } else if (responseAtPosition == PositionResponse.IN_POSITION) {
-                constraints.characterToMinCountInWord.put(guessCharacter, Math.max(constraints.characterToMinCountInWord.getOrDefault(guessCharacter, 0), 1));
+                constraints.characterToMinCountInWord[guessCharOffset] = Math.max(constraints.characterToMinCountInWord[guessCharOffset], 1);
                 charToNumResponsesIndicatingCharInWord.put(guessCharacter, charToNumResponsesIndicatingCharInWord.getOrDefault(guessCharacter, 0) + 1);
                 for (char notAllowedOffset = 0; notAllowedOffset < 26; notAllowedOffset++) {
                     if (notAllowedOffset == guessCharOffset) continue;
@@ -80,9 +80,9 @@ public class WordConstraints {
                     constraints.positionToAllowedCharacters[answerPosition][guessCharOffset] = false;
                 }
             } else if (inWordCount > 0 && notInWordCount == 0) {
-                constraints.characterToMinCountInWord.put(guessChar, Math.max(constraints.characterToMinCountInWord.getOrDefault(guessChar, 0), inWordCount));
+                constraints.characterToMinCountInWord[guessCharOffset] = Math.max(constraints.characterToMinCountInWord[guessCharOffset], inWordCount);
             } else if (inWordCount > 0 && notInWordCount > 0) {
-                constraints.characterToMinCountInWord.put(guessChar, Math.max(constraints.characterToMinCountInWord.get(guessChar), inWordCount));
+                constraints.characterToMinCountInWord[guessCharOffset] = Math.max(constraints.characterToMinCountInWord[guessCharOffset], inWordCount);
                 constraints.characterToMaxCountInWord.put(guessChar, Math.min(constraints.characterToMaxCountInWord.getOrDefault(guessChar, Integer.MAX_VALUE), inWordCount));
             }
         }
@@ -105,9 +105,8 @@ public class WordConstraints {
             characterToCount[cOffset]++;
         }
 
-        for (Character c : characterToMinCountInWord.keySet()) {
-            int cOffset = c - 'a';
-            if (characterToCount[cOffset] < characterToMinCountInWord.get(c)) {
+        for (int charOffset = 0; charOffset < 26; charOffset++) {
+            if (characterToCount[charOffset] < characterToMinCountInWord[charOffset]) {
                 return false;
             }
         }
