@@ -95,23 +95,25 @@ public class WordConstraints {
             throw new IllegalArgumentException("word = " + word + " should have length wordLength = " + wordLength + ".");
         }
 
-        Map<Character, Integer> characterToCount = new HashMap<>();
+        int[] characterToCount = new int[26];
         for (int wordIndex = 0; wordIndex < word.length(); wordIndex++) {
             char c = word.charAt(wordIndex);
             int cOffset = c - 'a';
             if (!positionToAllowedCharacters[wordIndex][cOffset]) {
                 return false;
             }
-            characterToCount.put(c, characterToCount.getOrDefault(c, 0) + 1);
+            characterToCount[cOffset]++;
         }
 
         for (Character c : characterToMinCountInWord.keySet()) {
-            if (characterToCount.getOrDefault(c, 0) < characterToMinCountInWord.get(c)) {
+            int cOffset = c - 'a';
+            if (characterToCount[cOffset] < characterToMinCountInWord.get(c)) {
                 return false;
             }
         }
         for (Character c : characterToMaxCountInWord.keySet()) {
-            if (characterToCount.getOrDefault(c, 0) > characterToMaxCountInWord.get(c)) {
+            int cOffset = c - 'a';
+            if (characterToCount[cOffset] > characterToMaxCountInWord.get(c)) {
                 return false;
             }
         }
