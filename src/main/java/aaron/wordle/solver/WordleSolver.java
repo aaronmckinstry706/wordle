@@ -7,39 +7,74 @@ import java.util.stream.Collectors;
 
 public class WordleSolver {
 
-    public List<String> remainingWords;
+    public List<String> wordMatchDictionary;
+    public List<String> answerDictionary;
     WordConstraints wordConstraints;
 
     public WordleSolver(List<String> dictionary) {
-        this.remainingWords = new ArrayList<>();
-        Set<String> wordsInDictionary = new HashSet<>();
-        for (String word : dictionary) {
-            if (!wordsInDictionary.contains(word)) {
-                this.remainingWords.add(word);
-                wordsInDictionary.add(word);
+        this(dictionary, dictionary);
+    }
+
+    public WordleSolver(List<String> wordMatchDictionary, List<String> answerDictionary) {
+        ensureDictionaryHasWords(wordMatchDictionary);
+        ensureDictionaryHasWords(answerDictionary);
+        int wordLength = wordMatchDictionary.get(0).length();
+        ensureDictionaryWordsHaveCorrectLength(wordMatchDictionary, wordLength);
+        ensureDictionaryWordsHaveCorrectLength(answerDictionary, wordLength);
+
+        this.wordMatchDictionary = new ArrayList<>();
+        Set<String> wordsInMatchDictionary = new HashSet<>();
+        // Add answer dictionary first so that potential answers are preferred over match words, all else being equal.
+        for (String word : answerDictionary) {
+            if (!wordsInMatchDictionary.contains(word)) {
+                this.wordMatchDictionary.add(word);
+                wordsInMatchDictionary.add(word);
             }
         }
-        if (remainingWords.isEmpty()) {
-            throw new IllegalArgumentException("dictionary must be non-empty!");
-        }
-        int wordLength = dictionary.get(0).length();
-        for (String word : dictionary) {
-            if (word.length() != wordLength) {
-                throw new IllegalArgumentException("dictionary words must be same length!");
-            }
-            if (!word.matches("[a-z]+")) {
-                throw new IllegalArgumentException("dictionary words must match regex `[a-z]+`!");
+        for (String word : wordMatchDictionary) {
+            if (!wordsInMatchDictionary.contains(word)) {
+                this.wordMatchDictionary.add(word);
+                wordsInMatchDictionary.add(word);
             }
         }
+
+        this.answerDictionary = new ArrayList<>();
+        Set<String> wordsInAnswerDictionary = new HashSet<>();
+        for (String word : answerDictionary) {
+            if (!wordsInAnswerDictionary.contains(word)) {
+                this.answerDictionary.add(word);
+                wordsInAnswerDictionary.add(word);
+            }
+        }
+
         this.wordConstraints = new WordConstraints(wordLength);
     }
 
+    private static void ensureDictionaryHasWords(List<String> dictionary) {
+        if (dictionary == null) throw new NullPointerException("dictionary");
+        if (dictionary.isEmpty()) throw new IllegalArgumentException("dictionary must be non-empty!");
+    }
+
+    private static void ensureDictionaryWordsHaveCorrectLength(List<String> dictionary, int wordLength) {
+        for (String word : dictionary) {
+            if (word.length() != wordLength) {
+                throw new IllegalArgumentException("wordMatchDictionary words must be same length!");
+            }
+            if (!word.matches("[a-z]+")) {
+                throw new IllegalArgumentException("wordMatchDictionary words must match regex `[a-z]+`!");
+            }
+        }
+    }
+
     public String nextGuess() {
+        if (answerDictionary.size() == 1) {
+            return answerDictionary.get(0);
+        }
         int minMaxNumRemainingGuesses = Integer.MAX_VALUE;
         String wordWithMinMaxNumRemainingGuesses = null;
         long startTimeMillis = System.currentTimeMillis();
         int numProcessed = 0;
-        for (String word : remainingWords) {
+        for (String word : wordMatchDictionary) {
             int maxNumRemainingGuesses = Integer.MIN_VALUE;
             Iterator<List<PositionResponse>> wordResponseIterator = WordResponses.withLength(wordConstraints.getWordLength());
             while (wordResponseIterator.hasNext()) {
@@ -47,7 +82,7 @@ public class WordleSolver {
                 WordConstraints wordConstraintsAfterGuessAndResponse = wordConstraints.updateFromGuess(word, potentialResponse);
                 if (wordConstraintsAfterGuessAndResponse == null) continue;
                 int numRemainingGuesses = 0;
-                for (String remainingGuess : remainingWords) {
+                for (String remainingGuess : answerDictionary) {
                     if (wordConstraintsAfterGuessAndResponse.wordFitsConstraints(remainingGuess)) {
                         numRemainingGuesses++;
                     }
@@ -65,7 +100,7 @@ public class WordleSolver {
                 long endTimeMillis = System.currentTimeMillis();
                 double timeSpent = ((double) (endTimeMillis - startTimeMillis) / 1000);
                 double timeToProcessOneGuess = timeSpent/numProcessed;
-                double remainingTime = timeToProcessOneGuess * (remainingWords.size() - numProcessed);
+                double remainingTime = timeToProcessOneGuess * (wordMatchDictionary.size() - numProcessed);
                 System.console().printf("Estimated remaining time to guess: " + remainingTime + " seconds.\n");
             }
         }
@@ -74,11 +109,11 @@ public class WordleSolver {
 
     public void updateFromGuess(String guess, List<PositionResponse> response) {
         wordConstraints = wordConstraints.updateFromGuess(guess, response);
-        remainingWords = remainingWords.stream().filter(wordConstraints::wordFitsConstraints).collect(Collectors.toList());
+        answerDictionary = answerDictionary.stream().filter(wordConstraints::wordFitsConstraints).collect(Collectors.toList());
     }
 
-    public List<String> getRemainingWords() {
-        return new ArrayList<>(remainingWords);
+    public List<String> getAnswerDictionary() {
+        return new ArrayList<>(answerDictionary);
     }
 
     public int getWordLength() {

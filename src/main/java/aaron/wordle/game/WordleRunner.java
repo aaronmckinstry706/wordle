@@ -11,23 +11,20 @@ import java.util.stream.Stream;
 
 public class WordleRunner {
 
-    List<String> dictionary;
+    List<String> wordMatchDictionary;
+    List<String> answerDictionary;
     WordleSolver solver;
     Console console;
 
-    public WordleRunner(String pathToDictionary) {
-        dictionary = new ArrayList<>();
-        try (Stream<String> stream = Files.lines(Paths.get(pathToDictionary))) {
-            stream.forEach(line -> dictionary.add(line.trim().toLowerCase()));
-        } catch (IOException e) {
-            throw new RuntimeException("Error reading file.", e);
-        }
-        solver = new WordleSolver(dictionary);
+    public WordleRunner(String pathToWordMatchDictionary, String pathToAnswerDictionary) {
+        wordMatchDictionary = readDictionaryFromFile(pathToWordMatchDictionary);
+        answerDictionary = readDictionaryFromFile(pathToAnswerDictionary);
+        solver = new WordleSolver(wordMatchDictionary, answerDictionary);
         console = System.console();
     }
 
     public static void main(String[] args) {
-        new WordleRunner(args[0]).run();
+        new WordleRunner(args[0], args[1]).run();
     }
 
     private void run() {
@@ -62,6 +59,16 @@ public class WordleRunner {
                 .map(color -> color.orElse(null))
                 .collect(Collectors.toList());
         return response.stream().anyMatch(Objects::isNull) || response.size() != solver.getWordLength() ? null : response;
+    }
+
+    private static List<String> readDictionaryFromFile(String pathToDictionary) {
+        List<String> dictionary = new ArrayList<>();
+        try (Stream<String> stream = Files.lines(Paths.get(pathToDictionary))) {
+            stream.forEach(line -> dictionary.add(line.trim().toLowerCase()));
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading file.", e);
+        }
+        return dictionary;
     }
 
 }
