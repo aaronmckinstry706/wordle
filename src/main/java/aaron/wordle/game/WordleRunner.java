@@ -48,6 +48,7 @@ public class WordleRunner {
                 console.printf("Invalid input! Please enter a valid reply.\n");
                 positionResponses = getResponseFromLine(System.console().readLine());
             }
+            solver.updateFromGuess(nextGuess, positionResponses);
             guessCount++;
         } while (!positionResponses.stream().allMatch(PositionResponse.IN_POSITION::equals));
 
