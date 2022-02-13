@@ -36,7 +36,6 @@ public class WordleGame {
         }
         for (int position = 0; position < word.length(); ++position) {
             int wordCharOffset = word.charAt(position) - 'a';
-            int answerCharOffset = answer.charAt(position) - 'a';
             if (answer.charAt(position) != word.charAt(position)) {
                 if (charOffsetToCountInAnswer[wordCharOffset] > 0) {
                     if (charOffsetToCountInWord[wordCharOffset] < charOffsetToCountInAnswer[wordCharOffset]) {
