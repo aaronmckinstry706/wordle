@@ -90,6 +90,9 @@ public class WordleSolver {
                 if (numRemainingGuesses > maxNumRemainingGuesses) {
                     maxNumRemainingGuesses = numRemainingGuesses;
                 }
+                if (maxNumRemainingGuesses > minMaxNumRemainingGuesses) {
+                    break;
+                }
             }
             if (maxNumRemainingGuesses < minMaxNumRemainingGuesses && maxNumRemainingGuesses > 0) {
                 wordWithMinMaxNumRemainingGuesses = word;
