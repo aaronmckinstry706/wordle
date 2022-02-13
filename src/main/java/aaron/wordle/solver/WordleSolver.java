@@ -72,8 +72,6 @@ public class WordleSolver {
         }
         int minMaxNumRemainingGuesses = Integer.MAX_VALUE;
         String wordWithMinMaxNumRemainingGuesses = null;
-        long startTimeMillis = System.currentTimeMillis();
-        int numProcessed = 0;
         for (String word : wordMatchDictionary) {
             int maxNumRemainingGuesses = Integer.MIN_VALUE;
             Iterator<List<PositionResponse>> wordResponseIterator = WordResponses.withLength(wordConstraints.getWordLength());
@@ -97,14 +95,6 @@ public class WordleSolver {
             if (maxNumRemainingGuesses < minMaxNumRemainingGuesses && maxNumRemainingGuesses > 0) {
                 wordWithMinMaxNumRemainingGuesses = word;
                 minMaxNumRemainingGuesses = maxNumRemainingGuesses;
-            }
-            numProcessed++;
-            if (numProcessed % 100 == 0) {
-                long endTimeMillis = System.currentTimeMillis();
-                double timeSpent = ((double) (endTimeMillis - startTimeMillis) / 1000);
-                double timeToProcessOneGuess = timeSpent/numProcessed;
-                double remainingTime = timeToProcessOneGuess * (wordMatchDictionary.size() - numProcessed);
-                System.console().printf("Estimated remaining time to guess: " + remainingTime + " seconds.\n");
             }
         }
         return wordWithMinMaxNumRemainingGuesses;
