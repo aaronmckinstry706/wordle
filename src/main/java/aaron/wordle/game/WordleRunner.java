@@ -73,6 +73,7 @@ public class WordleRunner {
         Collections.shuffle(answerDictionaryCopy, random);
         int totalGuesses = 0;
         int totalGames = 0;
+        int worstGuesses = 0;
         for (String answer : answerDictionaryCopy) {
             WordleGame game = new WordleGame(answer);
             WordleSolver solver = new WordleSolver(wordMatchDictionary, answerDictionary);
@@ -85,7 +86,8 @@ public class WordleRunner {
             } while (!nextGuess.equals(answer));
             totalGames++;
             totalGuesses += numGuesses;
-            console.printf("With " + totalGames + " games the average number of guesses is " + (int)((double) totalGuesses / totalGames) + ".\n");
+            worstGuesses = Math.max(numGuesses, worstGuesses);
+            console.printf("With " + totalGames + " games the average number of guesses is " + ((double) totalGuesses / totalGames) + " and worst number of guesses is " + worstGuesses + ".\n");
         }
     }
 
