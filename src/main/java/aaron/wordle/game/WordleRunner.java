@@ -11,6 +11,25 @@ import java.util.stream.Stream;
 
 public class WordleRunner {
 
+    public static void main(String[] args) {
+        if ("manual".equals(args[0])) {
+            new WordleRunner(args[1], args[2]).runAgainstManualInputWordleResponses();
+        }
+        else {
+            new WordleRunner(args[1], args[2]).findAverageSolveTime();
+        }
+    }
+
+    private static List<String> readDictionaryFromFile(String pathToDictionary) {
+        List<String> dictionary = new ArrayList<>();
+        try (Stream<String> stream = Files.lines(Paths.get(pathToDictionary))) {
+            stream.forEach(line -> dictionary.add(line.trim().toLowerCase()));
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading file.", e);
+        }
+        return dictionary;
+    }
+
     List<String> wordMatchDictionary;
     List<String> answerDictionary;
     WordleSolver solver;
@@ -23,11 +42,7 @@ public class WordleRunner {
         console = System.console();
     }
 
-    public static void main(String[] args) {
-        new WordleRunner(args[0], args[1]).run();
-    }
-
-    private void run() {
+    private void runAgainstManualInputWordleResponses() {
         console.printf("Hello! I will guess the next answer based on the dictionary you provided, " +
                 "and you will provide the answer in the following format: `_ _ _ _ _`, " +
                 "where _ can be 'gray', 'yellow', or 'green' (quotes excluded). " +
@@ -52,6 +67,28 @@ public class WordleRunner {
         console.printf("It took me " + guessCount + " tries to guess the word!");
     }
 
+    private void findAverageSolveTime() {
+        Random random = new Random(System.currentTimeMillis());
+        List<String> answerDictionaryCopy = new ArrayList<>(answerDictionary);
+        Collections.shuffle(answerDictionaryCopy, random);
+        int totalGuesses = 0;
+        int totalGames = 0;
+        for (String answer : answerDictionaryCopy) {
+            WordleGame game = new WordleGame(answer);
+            WordleSolver solver = new WordleSolver(wordMatchDictionary, answerDictionary);
+            int numGuesses = 0;
+            String nextGuess;
+            do {
+                nextGuess = solver.nextGuess();
+                solver.updateFromGuess(nextGuess, game.guessWord(nextGuess));
+                numGuesses++;
+            } while (!nextGuess.equals(answer));
+            totalGames++;
+            totalGuesses += numGuesses;
+            console.printf("With " + totalGames + " games the average number of guesses is " + ((double) totalGuesses / totalGames));
+        }
+    }
+
     private List<PositionResponse> getResponseFromLine(String line) {
         line = line.trim().toLowerCase().replaceAll("[^a-z]+", " ");
         List<PositionResponse> response = Arrays.stream(line.split(" "))
@@ -59,16 +96,6 @@ public class WordleRunner {
                 .map(color -> color.orElse(null))
                 .collect(Collectors.toList());
         return response.stream().anyMatch(Objects::isNull) || response.size() != solver.getWordLength() ? null : response;
-    }
-
-    private static List<String> readDictionaryFromFile(String pathToDictionary) {
-        List<String> dictionary = new ArrayList<>();
-        try (Stream<String> stream = Files.lines(Paths.get(pathToDictionary))) {
-            stream.forEach(line -> dictionary.add(line.trim().toLowerCase()));
-        } catch (IOException e) {
-            throw new RuntimeException("Error reading file.", e);
-        }
-        return dictionary;
     }
 
 }
