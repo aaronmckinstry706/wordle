@@ -54,7 +54,7 @@ public class WordleRunner {
         List<PositionResponse> positionResponses;
         do {
             String nextGuess = solver.nextGuess();
-            console.printf("I guess '" + nextGuess + "'. What is the response from Wordle?");
+            console.printf("I guess '" + nextGuess + "'. What is the response from Wordle?\n");
             positionResponses = getResponseFromLine(System.console().readLine());
             while (positionResponses == null) {
                 console.printf("Invalid input! Please enter a valid reply.\n");
@@ -64,7 +64,7 @@ public class WordleRunner {
             guessCount++;
         } while (!positionResponses.stream().allMatch(PositionResponse.IN_POSITION::equals));
 
-        console.printf("It took me " + guessCount + " tries to guess the word!");
+        console.printf("It took me " + guessCount + " tries to guess the word!\n");
     }
 
     private void findAverageSolveTime() {
@@ -85,7 +85,7 @@ public class WordleRunner {
             } while (!nextGuess.equals(answer));
             totalGames++;
             totalGuesses += numGuesses;
-            console.printf("With " + totalGames + " games the average number of guesses is " + ((double) totalGuesses / totalGames));
+            console.printf("With " + totalGames + " games the average number of guesses is " + (int)((double) totalGuesses / totalGames) + ".\n");
         }
     }
 
